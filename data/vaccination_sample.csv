@@ -1,5 +1,8 @@
 Updated On,State,Total Doses Administered,People Vaccinated,People Fully Vaccinated
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 92f41e7c7f0f8b8bdf363bd8d147bbadd04745e5
 2025-06-01,Maharashtra,8608,1288,661
 2025-06-01,Delhi,5221,3536,2990
 2025-06-01,Karnataka,9183,1443,252
@@ -1000,6 +1003,8 @@ Updated On,State,Total Doses Administered,People Vaccinated,People Fully Vaccina
 2025-09-08,Rajasthan,6720,457,62
 2025-09-08,Bihar,2943,1239,47
 2025-09-08,Kerala,8269,1570,812
+<<<<<<< HEAD
+=======
 =======
 2025-06-01,Maharashtra,5314,4721,1369
 2025-06-01,Delhi,201,4588,515
@@ -2002,3 +2007,4 @@ Updated On,State,Total Doses Administered,People Vaccinated,People Fully Vaccina
 2025-09-08,Bihar,8126,1470,199
 2025-09-08,Kerala,2387,3621,3245
 >>>>>>> 1b5b9c71561a11fb6ffdf08c49cfa42664dcd673
+>>>>>>> 92f41e7c7f0f8b8bdf363bd8d147bbadd04745e5

@@ -1,16 +1,9 @@
-# COVID-19 India Analysis Dashboard
+# COVID-19 India Dashboard
 
-This project provides a **data analysis and visualization dashboard** for COVID-19 cases and vaccination progress in India.  
-It uses Python along with **Pandas, Plotly, and Streamlit** to create interactive insights.
+This is a Streamlit-based interactive dashboard for visualizing COVID-19 data across Indian states and districts.
 
----
-
-## 📊 Features
-- State and district-wise COVID-19 case trends  
-- Vaccination progress across India  
-- Population-adjusted analysis of cases  
-- Interactive dashboard powered by **Streamlit**
-
----
-
-## 🗂️ Project Structure
+## 🚀 How to Run
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/mallika0731-design/COVID19_India_Analysis.git
+   cd COVID19_India_Analysis

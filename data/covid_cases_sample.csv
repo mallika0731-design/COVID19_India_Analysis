@@ -1,5 +1,8 @@
 Date,State,Confirmed,Recovered,Deceased,Total Doses Administered,Population
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 92f41e7c7f0f8b8bdf363bd8d147bbadd04745e5
 2025-06-01,Maharashtra,3470,3217,33,5367,85467831
 2025-06-01,Delhi,2503,1203,10,9677,79783906
 2025-06-01,Karnataka,3152,1506,27,8435,46050898
@@ -1000,6 +1003,8 @@ Date,State,Confirmed,Recovered,Deceased,Total Doses Administered,Population
 2025-09-08,Rajasthan,782,596,1,5621,10680424
 2025-09-08,Bihar,1540,620,32,5346,67926951
 2025-09-08,Kerala,3498,925,26,187,15415443
+<<<<<<< HEAD
+=======
 =======
 2025-06-01,Maharashtra,1164,287,34,5696,40934292
 2025-06-01,Delhi,1918,785,13,1730,64593452
@@ -2002,3 +2007,4 @@ Date,State,Confirmed,Recovered,Deceased,Total Doses Administered,Population
 2025-09-08,Bihar,875,612,46,1958,48264872
 2025-09-08,Kerala,926,858,17,5382,63935979
 >>>>>>> 1b5b9c71561a11fb6ffdf08c49cfa42664dcd673
+>>>>>>> 92f41e7c7f0f8b8bdf363bd8d147bbadd04745e5
