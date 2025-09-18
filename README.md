@@ -15,4 +15,4 @@ This project visualizes state-wise and district-wise trends using maps, charts, 
 
 ⚡ Powered by Streamlit, Pandas, Plotly, and GeoPandas
 
-✨ To add this:
+✨ check the app at: https://covid19indiaanalysis-qssll2jcgyyrxs7rtog9ch.streamlit.app/
