@@ -1,82 +1,168 @@
-# COVID19_India_Analysis_Local.py
-
-import streamlit as st
+import os
 import pandas as pd
-import numpy as np
+import geopandas as gpd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import plotly.express as px
-from prophet import Prophet
-import geopandas as gpd
-import os
-import warnings
-warnings.filterwarnings('ignore')
+import streamlit as st
 
 # -----------------------------
-# Set page config
+# Paths
 # -----------------------------
-st.set_page_config(layout="wide", page_title="COVID-19 India Dashboard (Local Data)")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(BASE_DIR, "data")
 
 # -----------------------------
-# 1️⃣ Local Data Folder
+# Load Data
 # -----------------------------
-# Update this path to your Desktop 'data' folder
-BASE_DIR = r"C:\Users\Lenovo\Desktop\data"
+covid_file = os.path.join(DATA_PATH, "covid_cases_sample.csv")
+districts_file = os.path.join(DATA_PATH, "districts_cases.csv")
+population_file = os.path.join(DATA_PATH, "population_sample.csv")
+states_file = os.path.join(DATA_PATH, "states_cases.csv")
+vaccination_file = os.path.join(DATA_PATH, "vaccination_sample.csv")
+vaccination_statewise_file = os.path.join(DATA_PATH, "vaccination_statewise.csv")
+geojson_file = os.path.join(DATA_PATH, "states_sample.geojson")
 
-covid_file = os.path.join(BASE_DIR, "covid_cases.csv")
-vacc_file = os.path.join(BASE_DIR, "vaccination.csv")
-pop_file = os.path.join(BASE_DIR, "population.csv")
-geo_file = os.path.join(BASE_DIR, "states_geojson.geojson")
-
-# -----------------------------
-# 2️⃣ Load Data
-# -----------------------------
-st.header("1️⃣ Load Data from Local Folder")
 covid_df = pd.read_csv(covid_file)
-vacc_df = pd.read_csv(vacc_file)
-pop_df = pd.read_csv(pop_file)
-states_geo = gpd.read_file(geo_file)
-st.success("✅ Data loaded successfully from local folder.")
+districts_df = pd.read_csv(districts_file)
+population_df = pd.read_csv(population_file)
+states_df = pd.read_csv(states_file)
+vaccination_df = pd.read_csv(vaccination_file)
+vaccination_statewise_df = pd.read_csv(vaccination_statewise_file)
+india_states = gpd.read_file(geojson_file)
 
 # -----------------------------
-# 3️⃣ Clean Data
+# Clean Dates
 # -----------------------------
-covid_df['Date'] = pd.to_datetime(covid_df['Date'], dayfirst=True)
-vacc_df['Updated On'] = pd.to_datetime(vacc_df['Updated On'], dayfirst=True)
-
-state_cols = [col for col in covid_df.columns if col not in ['Date','Status']]
-covid_pivot = covid_df.pivot(index='Date', columns='Status', values=state_cols).fillna(0)
-covid_pivot.columns = ['_'.join(col).strip() for col in covid_pivot.columns.values]
-covid_pivot.reset_index(inplace=True)
-
-latest_vacc = vacc_df.groupby('Updated On').sum().reset_index()
-merged_df = pd.merge(covid_pivot, latest_vacc, left_on='Date', right_on='Updated On', how='left').fillna(0)
-
-pop_df = pop_df[['State','Population']]
-state_population = dict(zip(pop_df['State'], pop_df['Population']))
-
-for state in state_cols:
-    merged_df[f'{state}_cases_per_million'] = merged_df[f'Confirmed_{state}'] / state_population.get(state,1) * 1e6
-    merged_df[f'{state}_vacc_per_million'] = merged_df.get(f'{state}_total_doses_administered',0)/state_population.get(state,1)*1e6
-
-st.write("✅ Data cleaned and per-million metrics computed.")
+for df in [covid_df, districts_df, states_df, vaccination_df]:
+    if "Date" in df.columns:
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce", dayfirst=True)
+        # Drop rows where Date could not be parsed
+        df.dropna(subset=["Date"], inplace=True)
 
 # -----------------------------
-# 4️⃣ Interactive Dashboard
+# Streamlit Dashboard
 # -----------------------------
-st.header("2️⃣ Interactive Dashboard")
-selected_states = st.multiselect("Select States", options=state_cols, default=state_cols[:5])
-date_range = st.date_input("Select Date Range", [merged_df['Date'].min(), merged_df['Date'].max()])
-start_date, end_date = date_range
-filtered_df = merged_df[(merged_df['Date']>=pd.to_datetime(start_date)) & (merged_df['Date']<=pd.to_datetime(end_date))]
+st.title("COVID-19 India Analysis Project (Advance Dashboard)")
 
-# Key metrics
-st.subheader("Key Metrics")
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total Confirmed", int(filtered_df[[f'Confirmed_{s}' for s in selected_states]].sum().sum()))
-col2.metric("Total Recovered", int(filtered_df[[f'Recovered_{s}' for s in selected_states]].sum().sum()))
-col3.metric("Total Deaths", int(filtered_df[[f'Deceased_{s}' for s in selected_states]].sum().sum()))
-col4.metric("Total Vaccinations", int(filtered_df[[s+'_total_doses_administered' for s in selected_states if s+'_total_doses_administered' in filtered_df.columns]].sum().sum()))
+st.sidebar.header("Navigation")
+options = [
+    "Dataset Overview",
+    "COVID Cases Trend",
+    "State-wise Cases",
+    "District-wise Cases",
+    "Population vs Cases",
+    "Vaccination Progress",
+    "Statewise Vaccination",
+    "Active Cases Over Time",
+    "Top States by Cases",
+    "Heatmap Correlations",
+    "Geospatial Map"
+]
+choice = st.sidebar.radio("Go to:", options)
 
-# Line Charts
-st.subhead
+# 1. Dataset Overview
+if choice == "Dataset Overview":
+    st.subheader("Dataset Overview")
+    st.write("COVID Dataset Sample")
+    st.dataframe(covid_df.head())
+    st.write("District Dataset Sample")
+    st.dataframe(districts_df.head())
+    st.write("Population Dataset Sample")
+    st.dataframe(population_df.head())
+    st.write("States Dataset Sample")
+    st.dataframe(states_df.head())
+    st.write("Vaccination Dataset Sample")
+    st.dataframe(vaccination_df.head())
+
+# 2. COVID Cases Trend
+elif choice == "COVID Cases Trend":
+    st.subheader("COVID-19 Cases Trend in India")
+    daily_cases = covid_df.groupby("Date")["Confirmed"].sum().reset_index()
+    st.line_chart(daily_cases.set_index("Date"))
+
+# 3. State-wise Cases
+elif choice == "State-wise Cases":
+    st.subheader("State-wise Confirmed Cases")
+    state_cases = states_df.groupby("State")["Confirmed"].max().sort_values(ascending=False)
+    st.bar_chart(state_cases)
+
+# 4. District-wise Cases
+elif choice == "District-wise Cases":
+    st.subheader("District-wise Confirmed Cases")
+    district_cases = districts_df.groupby("District")["Confirmed"].max().nlargest(15)
+    st.bar_chart(district_cases)
+
+# 5. Population vs Cases
+elif choice == "Population vs Cases":
+    st.subheader("Population vs Confirmed Cases")
+    # Ensure 'State' column exists and drop rows with missing values
+    states_clean = states_df.dropna(subset=["State", "Confirmed"])
+    population_clean = population_df.dropna(subset=["State", "Population"])
+    merged = states_clean.merge(population_clean, on="State", how="inner")
+    # Ensure numeric types for plotting
+    merged["Population"] = pd.to_numeric(merged["Population"], errors="coerce")
+    merged["Confirmed"] = pd.to_numeric(merged["Confirmed"], errors="coerce")
+    merged = merged.dropna(subset=["Population", "Confirmed"])
+    fig, ax = plt.subplots()
+    sns.scatterplot(x="Population", y="Confirmed", data=merged, ax=ax)
+    st.pyplot(fig)
+
+# 6. Vaccination Progress
+elif choice == "Vaccination Progress":
+    st.subheader("Vaccination Progress Overview")
+    # Use columns: 'total_doses_administered', 'first_dose', 'second_dose'
+    vax_cols = ["total_doses_administered", "first_dose", "second_dose"]
+    available_cols = [col for col in vax_cols if col in vaccination_df.columns]
+    if available_cols:
+        total_vax = vaccination_df[available_cols].sum()
+        st.bar_chart(total_vax)
+    else:
+        st.error("Required vaccination columns not found in the dataset.")
+
+# 7. Statewise Vaccination
+elif choice == "Statewise Vaccination":
+    st.subheader("Statewise Vaccination Coverage")
+    # Standardize column names to strip spaces
+    vaccination_statewise_df.columns = [col.strip() for col in vaccination_statewise_df.columns]
+    required_cols = ["State", "total_doses_administered", "first_dose", "second_dose"]
+    if all(col in vaccination_statewise_df.columns for col in required_cols):
+        vax_statewise = vaccination_statewise_df.dropna(subset=["State"])
+        # Show total doses administered per state
+        vax_statewise_grouped = vax_statewise.groupby("State")[["total_doses_administered", "first_dose", "second_dose"]].sum()
+        st.bar_chart(vax_statewise_grouped)
+    else:
+        st.error("Required columns 'State', 'total_doses_administered', 'first_dose', and 'second_dose' not found in statewise vaccination data.")
+
+# 8. Active Cases Over Time
+elif choice == "Active Cases Over Time":
+    st.subheader("Active Cases Trend")
+    active_cases = covid_df.groupby("Date")["Active"].sum().reset_index()
+    st.line_chart(active_cases.set_index("Date"))
+
+# 9. Top States by Cases
+elif choice == "Top States by Cases":
+    st.subheader("Top 10 States by Confirmed Cases")
+    top_states = states_df.groupby("State")["Confirmed"].max().nlargest(10)
+    st.bar_chart(top_states)
+
+# 10. Heatmap Correlations
+elif choice == "Heatmap Correlations":
+    st.subheader("Correlation Heatmap")
+    corr = covid_df[["Confirmed", "Recovered", "Deceased", "Active"]].corr()
+    fig, ax = plt.subplots()
+    sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax)
+    st.pyplot(fig)
+
+# 11. Geospatial Map
+elif choice == "Geospatial Map":
+    st.subheader("Geospatial Map of Cases")
+    merged = india_states.merge(states_df, left_on="ST_NM", right_on="State", how="left")
+    merged = merged.fillna(0)
+    st.write(merged[["ST_NM", "Confirmed", "geometry"]].head())
+    # Ensure CRS is WGS84 for st.map
+    merged = merged.to_crs(epsg=4326)
+    # Extract centroid latitude and longitude for each state
+    merged["lat"] = merged.geometry.centroid.y
+    merged["lon"] = merged.geometry.centroid.x
+    st.map(merged[["lat", "lon", "Confirmed"]])
+
